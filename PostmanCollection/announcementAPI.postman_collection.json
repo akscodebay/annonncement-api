@@ -1,0 +1,756 @@
+{
+	"info": {
+		"_postman_id": "22a7a8d5-6c2d-4495-a91d-71cedbaef76b",
+		"name": "announcementAPI",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Announcement Created",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "8258f726-83df-4da8-a940-368853cff807",
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"pm.test(\"Announcement Saved\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.message).to.eql(\"Announcement Saved.\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Auth",
+						"value": "<your authentication code>",
+						"type": "text"
+					},
+					{
+						"key": "Api-Version",
+						"value": "1",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"title\":\"Meeting\",\r\n    \"desc\":\"Meeting at 12 O'clock latest\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://xxxxxxxxxx.execute-api.ap-south-1.amazonaws.com/announcements/v1/announcement",
+					"protocol": "https",
+					"host": [
+						"xxxxxxxxxx",
+						"execute-api",
+						"ap-south-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"announcements",
+						"v1",
+						"announcement"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Method Changed to GET From POST",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "f4985bce-4449-40fb-ae2e-ca8b8c0717e6",
+						"exec": [
+							"pm.test(\"Status code is 403\", function () {\r",
+							"    pm.response.to.have.status(403);\r",
+							"});\r",
+							"pm.test(\"POST to GET Check\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.message).to.eql(\"Missing Authentication Token\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Auth",
+						"type": "text",
+						"value": "<your authentication code>"
+					},
+					{
+						"key": "Api-Version",
+						"value": "1",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"title\":\"Meeting\",\r\n    \"desc\":\"Meeting at 12 O'clock 2\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://xxxxxxxxxx.execute-api.ap-south-1.amazonaws.com/announcements/v1/announcement",
+					"protocol": "https",
+					"host": [
+						"xxxxxxxxxx",
+						"execute-api",
+						"ap-south-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"announcements",
+						"v1",
+						"announcement"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Body Validation",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "1325b8d7-a93d-47d0-80e3-d83020d222a4",
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"pm.test(\"Body Validation\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.message).to.eql(\"Invalid request body\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Auth",
+						"value": "<your authentication code>",
+						"type": "text"
+					},
+					{
+						"key": "Api-Version",
+						"value": "1",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"title\":\"Meeting\",\r\n    \" desc\":\"Meeting at 12 O'clock 3\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://xxxxxxxxxx.execute-api.ap-south-1.amazonaws.com/announcements/v1/announcement",
+					"protocol": "https",
+					"host": [
+						"xxxxxxxxxx",
+						"execute-api",
+						"ap-south-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"announcements",
+						"v1",
+						"announcement"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Authentication Token Not Present",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "70a94b5d-dd18-430b-972d-dbfd49777910",
+						"exec": [
+							"pm.test(\"Status code is 401\", function () {\r",
+							"    pm.response.to.have.status(401);\r",
+							"});\r",
+							"pm.test(\"Access Check\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.message).to.eql(\"Unauthorized\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Auth",
+						"type": "text",
+						"value": "<your authentication code>",
+						"disabled": true
+					},
+					{
+						"key": "Api-Version",
+						"value": "1",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"title\":\"Meeting\",\r\n    \" desc\":\"Meeting at 12 O'clock 4\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://xxxxxxxxxx.execute-api.ap-south-1.amazonaws.com/announcements/v1/announcement",
+					"protocol": "https",
+					"host": [
+						"xxxxxxxxxx",
+						"execute-api",
+						"ap-south-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"announcements",
+						"v1",
+						"announcement"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Incorrect Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "cf332413-8e62-4839-8c9a-b4312a5cc13a",
+						"exec": [
+							"pm.test(\"Status code is 403\", function () {\r",
+							"    pm.response.to.have.status(403);\r",
+							"});\r",
+							"pm.test(\"Access Denied\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.Message).to.eql(\"User is not authorized to access this resource with an explicit deny\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Auth",
+						"type": "text",
+						"value": "<your authentication code>a"
+					},
+					{
+						"key": "Api-Version",
+						"value": "1",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"title\":\"Meeting\",\r\n    \" desc\":\"Meeting at 12 O'clock 3\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://xxxxxxxxxx.execute-api.ap-south-1.amazonaws.com/announcements/v1/announcement",
+					"protocol": "https",
+					"host": [
+						"xxxxxxxxxx",
+						"execute-api",
+						"ap-south-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"announcements",
+						"v1",
+						"announcement"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Incorrect Access Token Header",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "dd976fd9-6f2e-4126-8012-4373668490a3",
+						"exec": [
+							"pm.test(\"Status code is 401\", function () {\r",
+							"    pm.response.to.have.status(401);\r",
+							"});\r",
+							"pm.test(\"Access Check\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.message).to.eql(\"Unauthorized\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Autha",
+						"type": "text",
+						"value": "<your authentication code>"
+					},
+					{
+						"key": "Api-Version",
+						"value": "1",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"title\":\"Meeting\",\r\n    \" desc\":\"Meeting at 12 O'clock 3\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://xxxxxxxxxx.execute-api.ap-south-1.amazonaws.com/announcements/v1/announcement",
+					"protocol": "https",
+					"host": [
+						"xxxxxxxxxx",
+						"execute-api",
+						"ap-south-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"announcements",
+						"v1",
+						"announcement"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "list of announcements",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "507fadf2-7c30-4d03-a432-f8d2bacc7784",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Api-Version",
+						"value": "1",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://xxxxxxxxxx.execute-api.ap-south-1.amazonaws.com/announcements/v1/announcements?pageNo=1",
+					"protocol": "https",
+					"host": [
+						"xxxxxxxxxx",
+						"execute-api",
+						"ap-south-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"announcements",
+						"v1",
+						"announcements"
+					],
+					"query": [
+						{
+							"key": "pageNo",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "No Content Check",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "970b7c5d-3409-4777-89f3-7e4d9bbabcd7",
+						"exec": [
+							"pm.test(\"Status code is 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Api-Version",
+						"value": "1",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://xxxxxxxxxx.execute-api.ap-south-1.amazonaws.com/announcements/v1/announcements?pageNo=2",
+					"protocol": "https",
+					"host": [
+						"xxxxxxxxxx",
+						"execute-api",
+						"ap-south-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"announcements",
+						"v1",
+						"announcements"
+					],
+					"query": [
+						{
+							"key": "pageNo",
+							"value": "2"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Missing Page Number",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "879ac024-b6ec-4965-9cf7-62ecde369434",
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"pm.test(\"Missing Page Number\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.message).to.eql(\"Missing required request parameters: [pageNo]\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Api-Version",
+						"type": "text",
+						"value": "1"
+					}
+				],
+				"url": {
+					"raw": "https://xxxxxxxxxx.execute-api.ap-south-1.amazonaws.com/announcements/v1/announcements?pageNo=",
+					"protocol": "https",
+					"host": [
+						"xxxxxxxxxx",
+						"execute-api",
+						"ap-south-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"announcements",
+						"v1",
+						"announcements"
+					],
+					"query": [
+						{
+							"key": "pageNo",
+							"value": ""
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Invalid Page Number",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "e15b4803-ece6-489b-9a91-f4383b1bbd3b",
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"pm.test(\"Invalid Page Number\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.errorMessage).to.eql(\"Unable to fetch Page Number.\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Api-Version",
+						"value": "1",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://xxxxxxxxxx.execute-api.ap-south-1.amazonaws.com/announcements/v1/announcements?pageNo=xx",
+					"protocol": "https",
+					"host": [
+						"xxxxxxxxxx",
+						"execute-api",
+						"ap-south-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"announcements",
+						"v1",
+						"announcements"
+					],
+					"query": [
+						{
+							"key": "pageNo",
+							"value": "xx"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Invalid APi-Version",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a143e73f-9d5e-4658-a83f-2a5f91b1f5c8",
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"pm.test(\"Invalid Api Version\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.message).to.eql(\"Unable to fetch Api-Version.\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Api-Version",
+						"type": "text",
+						"value": "x"
+					}
+				],
+				"url": {
+					"raw": "https://xxxxxxxxxx.execute-api.ap-south-1.amazonaws.com/announcements/v1/announcements?pageNo=xx",
+					"protocol": "https",
+					"host": [
+						"xxxxxxxxxx",
+						"execute-api",
+						"ap-south-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"announcements",
+						"v1",
+						"announcements"
+					],
+					"query": [
+						{
+							"key": "pageNo",
+							"value": "xx"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "missing Api-Version",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "86ec97db-8743-479c-a35e-26093974fa16",
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"pm.test(\"Missing Api Version\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.message).to.eql(\"Missing required request parameters: [Api-Version]\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Api-Version",
+						"type": "text",
+						"value": ""
+					}
+				],
+				"url": {
+					"raw": "https://xxxxxxxxxx.execute-api.ap-south-1.amazonaws.com/announcements/v1/announcements?pageNo=xx",
+					"protocol": "https",
+					"host": [
+						"xxxxxxxxxx",
+						"execute-api",
+						"ap-south-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"announcements",
+						"v1",
+						"announcements"
+					],
+					"query": [
+						{
+							"key": "pageNo",
+							"value": "xx"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Different Api-Version",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "88007626-b81a-430c-90aa-ee1afbc91017",
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"pm.test(\"Different Api Version\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.message).to.eql(\"Invalid Api Version.\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Api-Version",
+						"type": "text",
+						"value": "2"
+					}
+				],
+				"url": {
+					"raw": "https://xxxxxxxxxx.execute-api.ap-south-1.amazonaws.com/announcements/v1/announcements?pageNo=xx",
+					"protocol": "https",
+					"host": [
+						"xxxxxxxxxx",
+						"execute-api",
+						"ap-south-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"announcements",
+						"v1",
+						"announcements"
+					],
+					"query": [
+						{
+							"key": "pageNo",
+							"value": "xx"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}

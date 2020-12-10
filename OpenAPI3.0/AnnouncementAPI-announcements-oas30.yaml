@@ -1,0 +1,140 @@
+openapi: "3.0.1"
+info:
+  title: "AnnouncementAPI"
+  description: "Announcement API."
+  version: "2020-12-08"
+servers:
+- url: "https://xxxxxxxxxx.execute-api.ap-south-1.amazonaws.com/{basePath}"
+  variables:
+    basePath:
+      default: "announcements"
+paths:
+  /v1/announcements:
+    get:
+      parameters:
+      - name: "pageNo"
+        in: "query"
+        required: true
+        schema:
+          type: "integer"
+      - name: "Api-Version"
+        in: "header"
+        required: true
+        schema:
+          type: "integer"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Items"
+        204:
+          description: "No Content, data not available"
+        400:
+          description: "Bad Request, check page number"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+        500:
+          description: "Unexpected error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+  /v1/announcement:
+    post:
+      parameters:
+      - name: "Api-Version"
+        in: "header"
+        required: true
+        schema:
+          type: "integer"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnnouncementValidate"
+        required: true
+      responses:
+        201:
+          description: "Created, announcement saved."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        403:
+          description: "Forbidden, check authentication token."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        400:
+          description: "Bad Request, validate body."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        401:
+          description: "Unauthorized, check authentication token."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        500:
+          description: "Unexpected error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+      security:
+      - APIAuthorizer: []
+components:
+  schemas:
+    Items:
+      title: "Items Schema"
+      type: "object"
+      properties:
+        Items:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              date:
+                type: "string"
+              description:
+                type: "string"
+              id:
+                type: "string"
+              title:
+                type: "string"
+    ErrorMessage:
+      title: "Error Message Schema"
+      type: "object"
+      properties:
+        errorMessage:
+          type: "string"
+    Message:
+      title: "Message Schema"
+      type: "object"
+      properties:
+        message:
+          type: "string"
+    AnnouncementValidate:
+      required:
+      - "desc"
+      - "title"
+      type: "object"
+      properties:
+        title:
+          type: "string"
+        desc:
+          type: "string"
+      additionalProperties: false
+  securitySchemes:
+    APIAuthorizer:
+      type: "apiKey"
+      name: "Auth"
+      in: "header"
+      x-amazon-apigateway-authtype: "custom"

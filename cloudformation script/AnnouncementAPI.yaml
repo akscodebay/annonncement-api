@@ -1,0 +1,380 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Template for Announcement API Creation.
+
+#Parameters for Dyanomodb, lambda and API Gateway.
+Parameters:
+  SaveAnnouncementLambdaName:
+    Type: String
+    Description: Name of Save Announcement lambda.
+    AllowedPattern: ^.*[^0-9]$
+    ConstraintDescription: Must end with non-numeric character.
+    Default: SaveAnnouncementLambda
+  GetAnnouncementLambdaName:
+    Type: String
+    Description: Name of Get Announcement lambda.
+    AllowedPattern: ^.*[^0-9]$
+    ConstraintDescription: Must end with non-numeric character.
+    Default: GetAnnouncementLambda
+  AuthenticationLambdaName:
+    Type: String
+    Description: Name of Authentication lambda.
+    AllowedPattern: ^.*[^0-9]$
+    ConstraintDescription: Must end with non-numeric character.
+    Default: AuthenticationLambda
+  APIName:  
+    Type: String
+    Description: Name of API. 
+    AllowedPattern: ^[a-zA-Z]+$
+    ConstraintDescription: Only letters allowed.
+    Default: AnnouncementAPI
+  EnvironmentName:
+    Type: String
+    Description: Name of Stage.
+    AllowedPattern: ^[a-zA-Z]+$
+    ConstraintDescription: Only letters allowed.
+    Default: announcements
+
+#Resource definitions    
+Resources:
+#Dynamodb resource definiton
+  DynamoDBTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      TableName: AnnouncementTable
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: '5'
+        WriteCapacityUnits: '5'
+  
+  #Lambda & Role definition to Save Announcement
+  SaveAnnouncementLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub ${SaveAnnouncementLambdaName}-Role
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+            - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+              - lambda.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Path: /
+  DynamoDBPutItemPolicy: 
+    Type: "AWS::IAM::Policy"
+    Properties: 
+      PolicyName: "DynamoDBPutItemPolicy"
+      PolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - Effect: "Allow"
+            Action:
+              - 'dynamodb:PutItem*'
+            Resource: "*"
+      Roles: 
+        - !Ref SaveAnnouncementLambdaRole
+    DependsOn:
+      - SaveAnnouncementLambdaRole
+  SaveAnnouncementLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${SaveAnnouncementLambdaName}
+      Description: LambdaFunction of python3.8.
+      Runtime: python3.8
+      Code:
+        S3Bucket: aks-announcement
+        S3Key: saveAnnouncement.zip
+      Handler: saveAnnouncement.lambda_handler
+      Role: !GetAtt
+          - SaveAnnouncementLambdaRole
+          - Arn
+    DependsOn:
+      - SaveAnnouncementLambdaRole
+      - DynamoDBPutItemPolicy
+      - DynamoDBTable
+
+  #Lambda & Role definition to Get Announcement
+  GetAnnouncementLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub ${GetAnnouncementLambdaName}-Role
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+            - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+              - lambda.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Path: /
+  DynamoDBScanPolicy: 
+    Type: "AWS::IAM::Policy"
+    Properties: 
+      PolicyName: "DynamoDBPutScanPolicy"
+      PolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - Effect: "Allow"
+            Action:
+              - 'dynamodb:Scan*'
+            Resource: "*"
+      Roles: 
+        - !Ref GetAnnouncementLambdaRole
+    DependsOn:
+      - GetAnnouncementLambdaRole
+  GetAnnouncementLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${GetAnnouncementLambdaName}
+      Description: LambdaFunction of python3.8.
+      Runtime: python3.8
+      Code:
+        S3Bucket: aks-announcement
+        S3Key: listofAnnouncement.zip
+      Handler: listofAnnouncement.lambda_handler
+      Role: !GetAtt
+          - GetAnnouncementLambdaRole
+          - Arn
+    DependsOn:
+      - GetAnnouncementLambdaRole
+      - DynamoDBScanPolicy
+      - DynamoDBTable
+  
+  #Lambda & Role definition for Authentication
+  AuthenticationLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub ${AuthenticationLambdaName}-Role
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+            - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+              - lambda.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Path: /
+  AuthenticationLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${AuthenticationLambdaName}
+      Description: LambdaFunction of python3.8.
+      Runtime: python3.8
+      Code:
+        S3Bucket: aks-announcement
+        S3Key: authentication.zip
+      Handler: authentication.lambda_handler
+      Role: !GetAtt
+          - AuthenticationLambdaRole
+          - Arn
+    DependsOn:
+      - AuthenticationLambdaRole
+  
+  #API Gateway
+  APIGatewayRestAPI:
+    Type: 'AWS::ApiGateway::RestApi'
+    Properties:
+      Description: Announcement API.
+      Name: !Sub ${APIName}
+      ApiKeySourceType: HEADER
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+
+  Authorizer:
+    Type: 'AWS::ApiGateway::Authorizer'
+    Properties:
+      AuthorizerUri: !Join 
+        - ''
+        - - 'arn:aws:apigateway:'
+          - !Ref 'AWS::Region'
+          - ':lambda:path/2015-03-31/functions/'
+          - !GetAtt 
+            - AuthenticationLambdaFunction
+            - Arn
+          - /invocations
+      Type: TOKEN
+      IdentitySource: method.request.header.Auth
+      Name: APIAuthorizer
+      RestApiId: !Ref APIGatewayRestAPI
+    DependsOn:
+      - APIGatewayRestAPI
+  
+  #API Gateway Resource definiton for announcement.
+  AnnouncementAPIGatewayResource:
+    Type: 'AWS::ApiGateway::Resource'
+    Properties:
+      ParentId: !GetAtt APIGatewayRestAPI.RootResourceId
+      PathPart: v1
+      RestApiId: !Ref APIGatewayRestAPI
+    DependsOn:
+      - APIGatewayRestAPI
+
+  #API Gateway Resource definiton for announcement.
+  AnnouncementSaveAPIGatewayResource:
+    Type: 'AWS::ApiGateway::Resource'
+    Properties:
+      ParentId: !Ref AnnouncementAPIGatewayResource
+      PathPart: announcement
+      RestApiId: !Ref APIGatewayRestAPI
+    DependsOn:
+      - AnnouncementAPIGatewayResource
+
+#Model to validate request
+  AnnouncementValidate:
+    Type: 'AWS::ApiGateway::Model'
+    Properties:
+      RestApiId: !Ref APIGatewayRestAPI
+      ContentType: application/json
+      Description: Schema for Announcement
+      Name: AnnouncementValidate
+      Schema:
+        "$schema": http://json-schema.org/draft-07/schema
+        type: object
+        required:
+        - title
+        - desc
+        properties:
+          title:
+            type: string
+          desc:
+            type: string
+        additionalProperties: false
+    DependsOn:
+      - AnnouncementSaveAPIGatewayResource
+  
+  #Request Validator
+  RequestValidator:
+    Type: AWS::ApiGateway::RequestValidator
+    Properties:
+      Name: RequestValidator
+      RestApiId: !Ref APIGatewayRestAPI
+      ValidateRequestBody: true
+      ValidateRequestParameters: true
+  
+  #POST method definition for saving announcement. 
+  AnnouncementAPIGatewayPOSTMethod:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      HttpMethod: POST
+      ResourceId: !Ref AnnouncementSaveAPIGatewayResource 
+      RestApiId: !Ref APIGatewayRestAPI
+      AuthorizationType: CUSTOM
+      AuthorizerId: !Ref Authorizer
+      RequestModels:
+        application/json: AnnouncementValidate
+      RequestValidatorId: !Ref RequestValidator
+      RequestParameters:
+        method.request.header.Api-Version: true
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 
+          - >- 
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SaveAnnouncementLambdaArn}/invocations
+          - SaveAnnouncementLambdaArn: !GetAtt SaveAnnouncementLambdaFunction.Arn
+
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: Empty
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+    DependsOn:
+      - AnnouncementSaveAPIGatewayResource
+      - SaveAnnouncementLambdaFunction
+      - AnnouncementValidate
+
+  #API Gateway Resource definiton for announcement.
+  AnnouncementGetAPIGatewayResource:
+    Type: 'AWS::ApiGateway::Resource'
+    Properties:
+      ParentId: !Ref AnnouncementAPIGatewayResource
+      PathPart: announcements
+      RestApiId: !Ref APIGatewayRestAPI
+    DependsOn:
+      - AnnouncementAPIGatewayResource
+
+  #Get method definition for getting announcements. 
+  AnnouncementAPIGatewayGETMethod:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      HttpMethod: GET
+      ResourceId: !Ref AnnouncementGetAPIGatewayResource 
+      RestApiId: !Ref APIGatewayRestAPI
+      AuthorizationType: NONE
+      RequestValidatorId: !Ref RequestValidator
+      RequestParameters:
+        method.request.querystring.pageNo: true
+        method.request.header.Api-Version: true
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 
+          - >- 
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetAnnouncementLambdaArn}/invocations
+          - GetAnnouncementLambdaArn: !GetAtt GetAnnouncementLambdaFunction.Arn
+
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: Empty
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+    DependsOn:
+      - AnnouncementGetAPIGatewayResource
+      - GetAnnouncementLambdaFunction
+  
+  #API Deployment
+  APIGatewayDeployment:
+    Type: 'AWS::ApiGateway::Deployment'
+    Properties:
+      RestApiId: !Ref APIGatewayRestAPI
+      StageName: !Ref EnvironmentName
+    DependsOn:
+      - AnnouncementAPIGatewayGETMethod
+      - AnnouncementAPIGatewayPOSTMethod
+  
+    #Lambda permission for Save announcement lambda
+  SaveAnnouncementLambdaAPIGatewayPermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !GetAtt  SaveAnnouncementLambdaFunction.Arn
+      Principal: apigateway.amazonaws.com
+    DependsOn:
+      - APIGatewayDeployment
+  
+  #Lambda permission for Get Announcements lambda
+  GetAnnouncementLambdaAPIGatewayPermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !GetAtt  GetAnnouncementLambdaFunction.Arn
+      Principal: apigateway.amazonaws.com
+    DependsOn:
+      - APIGatewayDeployment
+  
+  #Lambda permission for authorization lambda
+  AuthorizationLambdaAPIGatewayPermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !GetAtt  AuthenticationLambdaFunction.Arn
+      Principal: apigateway.amazonaws.com
+    DependsOn:
+      - APIGatewayDeployment
